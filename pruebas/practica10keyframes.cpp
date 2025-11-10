@@ -1,7 +1,7 @@
 /* 
-AnimaciÃ³n por keyframes
-La textura del skybox fue conseguida desde la pÃ¡gina https ://opengameart.org/content/elyvisions-skyboxes?page=1
-y editÃ© en Gimp rotando 90 grados en sentido antihorario la imagen  sp2_up.png para poder ver continuidad.
+Animación por keyframes
+La textura del skybox fue conseguida desde la página https ://opengameart.org/content/elyvisions-skyboxes?page=1
+y edité en Gimp rotando 90 grados en sentido antihorario la imagen  sp2_up.png para poder ver continuidad.
 Fuentes :
 	https ://www.khronos.org/opengl/wiki/Keyframe_Animation
 	http ://what-when-how.com/wp-content/uploads/2012/07/tmpcd0074_thumb.png
@@ -35,7 +35,7 @@ Fuentes :
 #include"Model.h"
 #include "Skybox.h"
 
-//para iluminaciÃ³n
+//para iluminación
 #include "CommonValues.h"
 #include "DirectionalLight.h"
 #include "PointLight.h"
@@ -44,7 +44,7 @@ Fuentes :
 const float toRadians = 3.14159265f / 180.0f;
 #define NUM_BASE_KEYFRAMES 100
 
-//variables para animaciÃ³n
+//variables para animación
 float movCoche;
 float movOffset;
 float rotllanta;
@@ -87,7 +87,18 @@ Model casa2;
 Model edificios;
 Model balon;
 Model casas;
-Model Mike;
+Model Carro;
+
+//modelos para avatar mike
+Model cuerpoM;
+Model ArmR;
+Model ArmL;
+Model LegRS; //pierna derecha superior
+Model LegRI; //pierna derecha inferior
+Model LegLS; //pierna izquierda superior
+Model LegLI; //pierna izquierda inferior
+
+
 
 Skybox skybox;
 
@@ -113,10 +124,10 @@ static const char* vShader = "shaders/shader_light.vert";
 // Fragment Shader
 static const char* fShader = "shaders/shader_light.frag";
 
-//funciÃ³n para teclado de keyframes 
+//función para teclado de keyframes 
 void inputKeyframes(bool* keys);
 
-//cÃ¡lculo del promedio de las normales para sombreado de Phong
+//cálculo del promedio de las normales para sombreado de Phong
 void calcAverageNormals(unsigned int* indices, unsigned int indiceCount, GLfloat* vertices, unsigned int verticeCount,
 	unsigned int vLength, unsigned int normalOffset)
 {
@@ -289,8 +300,8 @@ float giroAvion = 0;
 float giroX = 0.0f;
 
 
-#define MAX_FRAMES 100 //NÃºmero de cuadros mÃ¡ximos -> depende de la animacion
-int i_max_steps = 1; //NÃºmero de pasos entre cuadros para interpolaciÃ³n, a mayor nÃºmero , mÃ¡s lento serÃ¡ el movimiento -> minimo para el ojo 30
+#define MAX_FRAMES 100 //Número de cuadros máximos -> depende de la animacion
+int i_max_steps = 1; //Número de pasos entre cuadros para interpolación, a mayor número , más lento será el movimiento -> minimo para el ojo 30
 int i_curr_steps = 0;
 typedef struct _frame
 {
@@ -306,7 +317,7 @@ typedef struct _frame
 }FRAME;
 
 FRAME KeyFrame[MAX_FRAMES];
-int FrameIndex = 100;			//El nÃºmero de cuadros guardados actualmente desde 0 para no sobreescribir
+int FrameIndex = 100;			//El número de cuadros guardados actualmente desde 0 para no sobreescribir
 bool play = false;
 int playIndex = 0;
 
@@ -320,7 +331,7 @@ void saveFrame(void) //tecla L
 	KeyFrame[FrameIndex].movAvion_y = movAvion_y;
 	KeyFrame[FrameIndex].giroAvion = giroAvion;
 	KeyFrame[FrameIndex].giroX = giroX;
-	//Se agregan nuevas lÃ­neas para guardar mÃ¡s variables si es necesario
+	//Se agregan nuevas líneas para guardar más variables si es necesario
 
 
 	std::ofstream archivoKeyframes;
@@ -403,7 +414,7 @@ void loadKeyframes()
 
 		if (FrameIndex <= NUM_BASE_KEYFRAMES)
 		{
-			// estÃ¡ vacÃ­o.
+			// está vacío.
 			FrameIndex = NUM_BASE_KEYFRAMES;
 		}
 
@@ -442,13 +453,13 @@ void animate(void)
 	//Movimiento del objeto con barra espaciadora
 	if (play)
 	{
-		if (i_curr_steps >= i_max_steps) //fin de animaciÃ³n entre frames?
+		if (i_curr_steps >= i_max_steps) //fin de animación entre frames?
 		{
 			playIndex++;
 
 			printf("playindex : %d\n", playIndex);
 
-			if (playIndex > FrameIndex - 2)	//Fin de toda la animaciÃ³n con Ãºltimo frame?
+			if (playIndex > FrameIndex - 2)	//Fin de toda la animación con último frame?
 			{
 				
 					printf("Frame index= %d\n", FrameIndex);
@@ -460,7 +471,7 @@ void animate(void)
 			}
 
 
-			else //InterpolaciÃ³n del prÃ³ximo cuadro
+			else //Interpolación del próximo cuadro
 			{
 				
 				i_curr_steps = 0; //Resetea contador
@@ -469,7 +480,7 @@ void animate(void)
 		}
 		else
 		{
-			//Dibujar AnimaciÃ³n
+			//Dibujar Animación
 			movAvion_x += KeyFrame[playIndex].movAvion_xInc ;
 			movAvion_y += KeyFrame[playIndex].movAvion_yInc ;
 			giroAvion += KeyFrame[playIndex].giroAvionInc;
@@ -533,11 +544,24 @@ int main()
 	edificios.LoadModel("Models/edificiosEjemplo.fbx");
 	balon = Model();
 	balon.LoadModel("Models/10536_soccerball_V1_iterations-2.obj");
-	//casas = Model();
-	//casas.LoadModel("Models/casas.fbx");
-	//Mike = Model();
-	//Mike.LoadModel("Models/avatarMike.fbx");
 
+	cuerpoM = Model();
+	cuerpoM.LoadModel("Models/mikeCuerpo.obj");
+	ArmR = Model();
+	ArmR.LoadModel("Models/mikeArmR.obj");
+	ArmL = Model();
+	ArmL.LoadModel("Models/mikeArmL.obj");
+	LegRS = Model();
+	LegRS.LoadModel("Models/mikeLegRS.obj");
+	LegRI = Model();
+	LegRI.LoadModel("Models/mikeLegRI.obj");
+	LegLI = Model();
+	LegLI.LoadModel("Models/mikeLegLI.obj");
+	LegLS = Model();
+	LegLS.LoadModel("Models/mikeLegLS.obj");
+
+	Carro = Model();
+	Carro.LoadModel("Models/CarroceriaCangre.obj");
 
 
 	std::vector<std::string> skyboxFaces;
@@ -554,13 +578,13 @@ int main()
 	Material_opaco = Material(0.3f, 4);
 
 
-	//luz direccional, sÃ³lo 1 y siempre debe de existir
+	//luz direccional, sólo 1 y siempre debe de existir
 	mainLight = DirectionalLight(1.0f, 1.0f, 1.0f,
 		0.3f, 0.3f,
 		0.0f, 0.0f, -1.0f);
 	//contador de luces puntuales
 	unsigned int pointLightCount = 0;
-	//DeclaraciÃ³n de primer luz puntual
+	//Declaración de primer luz puntual
 	pointLights[0] = PointLight(1.0f, 0.0f, 0.0f,
 		0.0f, 1.0f,
 		0.0f, 2.5f, 1.5f,
@@ -598,7 +622,7 @@ int main()
 	rotllantaOffset = 10.0f;
 	glm::vec3 posblackhawk = glm::vec3(2.0f, 0.0f, 0.0f);
 	
-	//---------PARA TENER KEYFRAMES GUARDADOS NO VOLATILES QUE SIEMPRE SE UTILIZARAN SE DECLARAN AQUÃ
+	//---------PARA TENER KEYFRAMES GUARDADOS NO VOLATILES QUE SIEMPRE SE UTILIZARAN SE DECLARAN AQUÍ
 	//deberian de estar almacenados en un archivo externo para no ser volatiles
 	/*
 	KeyFrame[0].movAvion_x = 0.0f;
@@ -629,7 +653,7 @@ int main()
 	KeyFrame[5].movAvion_y = 4.0f;
 	KeyFrame[5].giroAvion = 0.0f;
 	
-	//Se agregan nuevos frames  //el ultimo cuadro y el primero siempre deben de ser iguales para que la animaciÃ³n sea cÃ­clica
+	//Se agregan nuevos frames  //el ultimo cuadro y el primero siempre deben de ser iguales para que la animación sea cíclica
 	//agregar cuadros necesarios para regresar en la direccion contraria -> generar la animacion por input de teclado NO pegar los frames
 	//agregar tecla para mover en X y Y y giro 
 	KeyFrame[6].movAvion_x = 0.0f;
@@ -647,6 +671,7 @@ int main()
 
 		glm::mat4 model(1.0);
 		glm::mat4 modelaux(1.0);
+		glm::mat4 modelMike(1.0);
 		glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
 		glm::vec2 toffset = glm::vec2(0.0f, 0.0f);
 		glm::vec3 lowerLight = glm::vec3(0.0f,0.0f,0.0f);
@@ -689,7 +714,7 @@ int main()
 		uniformColor = shaderList[0].getColorLocation();
 		uniformTextureOffset = shaderList[0].getOffsetLocation();
 
-		//informaciÃ³n en el shader de intensidad especular y brillo
+		//información en el shader de intensidad especular y brillo
 		uniformSpecularIntensity = shaderList[0].GetSpecularIntensityLocation();
 		uniformShininess = shaderList[0].GetShininessLocation();
 
@@ -697,12 +722,12 @@ int main()
 		glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(camera.calculateViewMatrix()));
 		glUniform3f(uniformEyePosition, camera.getCameraPosition().x, camera.getCameraPosition().y, camera.getCameraPosition().z);
 
-		// luz ligada a la cÃ¡mara de tipo flash
+		// luz ligada a la cámara de tipo flash
 		lowerLight = camera.getCameraPosition();
 		lowerLight.y -= 0.3f;
 		spotLights[0].SetFlash(lowerLight, camera.getCameraDirection());
 
-		//informaciÃ³n al shader de fuentes de iluminaciÃ³n
+		//información al shader de fuentes de iluminación
 		shaderList[0].SetDirectionalLight(&mainLight);
 		shaderList[0].SetPointLights(pointLights, pointLightCount);
 		shaderList[0].SetSpotLights(spotLights, spotLightCount);
@@ -773,16 +798,47 @@ int main()
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		tubo.RenderModel();
 
-		/*
+		
 		//prueba avatar mike
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 1.0f));
-		model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
-		model = glm::rotate(model, 90 * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
+		model = glm::translate(model, glm::vec3(-15.0f, 5.0f, -15.0f));
+		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+		modelMike = model;
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		Mike.RenderModel();
-		*/
+		cuerpoM.RenderModel();
+		
+		//brazo derecho
+		model = modelMike;
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		ArmR.RenderModel();
 
+		//brazo izq
+		model = modelMike;
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		ArmL.RenderModel();
+
+		//piernas
+		//derecha
+		// derecho S
+		model = modelMike;
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		LegRS.RenderModel();
+
+		//derecho I
+		model = modelMike;
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		LegRI.RenderModel();
+
+		//izquierda
+		// izquierda S
+		model = modelMike;
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		LegLS.RenderModel();
+
+		//izquierda I
+		model = modelMike;
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		LegLI.RenderModel();
 
 		
 
@@ -845,6 +901,14 @@ int main()
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		ring.RenderModel();
 
+		//prueba carro
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-10.0f, 0.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(3.0f, 3.0f, 3.0f));
+		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Carro.RenderModel();
+
 		
 		//prueba balon
 		model = glm::mat4(1.0);
@@ -900,7 +964,7 @@ void inputKeyframes(bool* keys)
 				i_curr_steps = 0;
 				play = true;
 				reproduciranimacion++;
-				printf("\n presiona 0 para habilitar reproducir de nuevo la animaciÃ³n'\n");
+				printf("\n presiona 0 para habilitar reproducir de nuevo la animación'\n");
 				habilitaranimacion = 0;
 
 			}
@@ -916,7 +980,7 @@ void inputKeyframes(bool* keys)
 	{
 		if (habilitaranimacion < 1 && reproduciranimacion>0)
 		{
-			printf("Ya puedes reproducir de nuevo la animaciÃ³n con la tecla de barra espaciadora'\n");
+			printf("Ya puedes reproducir de nuevo la animación con la tecla de barra espaciadora'\n");
 			reproduciranimacion = 0;
 			//FrameIndex = 0; // Reinicia el contador 
 			
@@ -935,12 +999,12 @@ void inputKeyframes(bool* keys)
 			reinicioFrame = 0;
 		}
 	}
-	if (keys[GLFW_KEY_P]) //para cada tecla debe de incluir banderas para evitar mÃºltiples entradas por latencia
+	if (keys[GLFW_KEY_P]) //para cada tecla debe de incluir banderas para evitar múltiples entradas por latencia
 	{
 		if (reinicioFrame < 1)
 		{
 			guardoFrame = 0;
-			reinicioFrame++; //si se coloca aquÃ­ el press, por latencia entrarÃ¡ mÃ¡s de una vez el print
+			reinicioFrame++; //si se coloca aquí el press, por latencia entrará más de una vez el print
 			printf("Ya puedes guardar otro frame presionando la tecla L'\n");
 		}
 	}
