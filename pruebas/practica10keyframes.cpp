@@ -300,6 +300,20 @@ float giroAvion = 0;
 float giroX = 0.0f;
 
 
+float posMike_X = 0.0f;
+float posMike_Z = 0.0f;
+float rotMike_Y = 0.0f; // Rotación sobre el eje Y (giro horizontal)
+
+float anguloCaminata = 0.0f; // angulo que oscila entre -MAX y +MAX
+float velocidadCaminata = 5.0f; // ajustar para naturalidad)
+const float MAX_SWING_ANGLE = 30.0f;
+
+
+// Constantes de velocidad
+const float velocidadMovimiento = 0.1f; // Unidades por segundo
+const float velocidadGiro = 10.0f; // Grados por segundo
+
+
 #define MAX_FRAMES 100 //Número de cuadros máximos -> depende de la animacion
 int i_max_steps = 1; //Número de pasos entre cuadros para interpolación, a mayor número , más lento será el movimiento -> minimo para el ojo 30
 int i_curr_steps = 0;
@@ -672,9 +686,13 @@ int main()
 		glm::mat4 model(1.0);
 		glm::mat4 modelaux(1.0);
 		glm::mat4 modelMike(1.0);
+		glm::mat4 modelMikeAux(1.0);
 		glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
 		glm::vec2 toffset = glm::vec2(0.0f, 0.0f);
 		glm::vec3 lowerLight = glm::vec3(0.0f,0.0f,0.0f);
+		float swingAngle;
+
+		
 	////Loop mientras no se cierra la ventana
 	while (!mainWindow.getShouldClose())
 	{
@@ -799,45 +817,56 @@ int main()
 		tubo.RenderModel();
 
 		
+		
 		//prueba avatar mike
-		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(-15.0f, 5.0f, -15.0f));
-		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-		modelMike = model;
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		modelMike = glm::mat4(1.0);
+		modelMike = glm::translate(modelMike, glm::vec3(-15.0f, 3.0f, -15.0f)); // Posición inicial fija
+		modelMike = glm::translate(modelMike, glm::vec3(posMike_X, 0.0f, posMike_Z));
+
+		modelMike = glm::rotate(modelMike, rotMike_Y * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+
+		modelMike = glm::scale(modelMike, glm::vec3(1.0f, 1.0f, 1.0f)); // Escala
+		modelMikeAux = modelMike;
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(modelMike));
 		cuerpoM.RenderModel();
 		
+		swingAngle = glm::sin(anguloCaminata * toRadians) * MAX_SWING_ANGLE;
+
 		//brazo derecho
-		model = modelMike;
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		modelMike = modelMikeAux;
+		modelMike = glm::rotate(modelMike, -swingAngle * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(modelMike));
 		ArmR.RenderModel();
 
 		//brazo izq
-		model = modelMike;
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		modelMike = modelMikeAux;
+		modelMike = glm::rotate(modelMike, swingAngle * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(modelMike));
 		ArmL.RenderModel();
 
 		//piernas
 		//derecha
 		// derecho S
-		model = modelMike;
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		modelMike = modelMikeAux;
+		modelMike = glm::rotate(modelMike, swingAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(modelMike));
 		LegRS.RenderModel();
 
 		//derecho I
-		model = modelMike;
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		modelMike = modelMikeAux;
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(modelMike));
 		LegRI.RenderModel();
 
 		//izquierda
 		// izquierda S
-		model = modelMike;
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		modelMike = modelMikeAux;
+		modelMike = glm::rotate(modelMike, -swingAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(modelMike));
 		LegLS.RenderModel();
 
 		//izquierda I
-		model = modelMike;
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		modelMike = modelMikeAux;
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(modelMike));
 		LegLI.RenderModel();
 
 		
@@ -1124,6 +1153,39 @@ void inputKeyframes(bool* keys)
 		}
 	}
 
+	if (keys[GLFW_KEY_A]) // Giro a la izquierda
+	{
+		rotMike_Y += velocidadGiro * deltaTime;
+	}
+	if (keys[GLFW_KEY_D]) // Giro a la derecha
+	{
+		rotMike_Y -= velocidadGiro * deltaTime;
+	}
 
+	float yawRad = rotMike_Y * toRadians;
+	glm::vec3 adelante = glm::vec3(glm::cos(yawRad), 0.0f, -glm::sin(yawRad));
+	bool isMoving = false;
+
+
+	if (keys[GLFW_KEY_W]) { // Avanza hacia donde mira
+		posMike_X += adelante.x * velocidadMovimiento * deltaTime;
+		posMike_Z += adelante.z * velocidadMovimiento * deltaTime;
+		isMoving = true;
+	}
+	if (keys[GLFW_KEY_S]) { // Retrocede
+		posMike_X -= adelante.x * velocidadMovimiento * deltaTime;
+		posMike_Z -= adelante.z * velocidadMovimiento * deltaTime;
+		isMoving = true;
+	}
+	
+	if (isMoving) {
+		anguloCaminata += velocidadCaminata * deltaTime;
+
+		if (anguloCaminata > 360.0f) anguloCaminata -= 360.0f;
+	}
+	else {
+
+		anguloCaminata = 0.0f;
+	}
 
 }
